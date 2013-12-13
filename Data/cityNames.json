@@ -1,0 +1,6 @@
+{
+  "Chicago": "chicago_university.csv",
+  "New York": "new_york_central_park.csv",
+  "Palo Alto": "palo_alto.csv",
+  "San Francisco": "sf.csv"
+}
