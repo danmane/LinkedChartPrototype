@@ -26,7 +26,7 @@ class Chart {
     public static width = 560 - Chart.margin.left - Chart.margin.right;
     public static height = 500 - Chart.margin.top - Chart.margin.bottom;
     private static attributes = ["avg","avgh","avgl","hi","hih","hil","lo","loh","lol","precip","day"]
-    private static parseDate = d3.time.format("%y-%b-%d").parse;
+    private static parseDate = d3.time.format("%Y-%m-%d").parse;
 
     public svg: D3.Selection;
     public xScalePlot: D3.Scale.TimeScale;
@@ -37,14 +37,18 @@ class Chart {
     public yAxis: D3.Svg.Axis;
     public xAxisEl: D3.Selection;
     public yAxisEl: D3.Selection;
-    public pathEl: D3.Selection;
-    public line: D3.Svg.Line;
+    public avgEl: D3.Selection;
+    public hiEl: D3.Selection;
+    public loEl: D3.Selection;
+    public plot: D3.Selection;
+    public lines: D3.Svg.Line[];
     public data: IWeatherDatum[];
 
     public static processCSVData(indata: any) {
         indata.forEach((d: any) => {
+            var dt = d; // TIL function arguments arent accessible from an inner-scope closure
             Chart.attributes.forEach((a: string) => {
-                indata[a] = +indata[a];
+                dt[a] = +dt[a];
             });
             d.date = Chart.parseDate(d.date);
         });
@@ -56,6 +60,7 @@ class Chart {
         this.setupDOM(container);
         d3.csv(url, (error, data) => {
             this.data = Chart.processCSVData(data);
+            this.initialRender();
           });
 
     }
@@ -68,9 +73,17 @@ class Chart {
 
         this.xAxis = d3.svg.axis().scale(this.xScaleAxis).orient("bottom");
         this.yAxis = d3.svg.axis().scale(this.yScaleAxis).orient("left");
-        this.line = d3.svg.line()
+        var avgLine = d3.svg.line()
             .x((d: IWeatherDatum) => this.xScalePlot(d.date))
             .y((d: IWeatherDatum) => this.yScalePlot(d.avg));
+        var highLine = d3.svg.line()
+            .x((d: IWeatherDatum) => this.xScalePlot(d.date))
+            .y((d: IWeatherDatum) => this.yScalePlot(d.hi));
+        var lowLine = d3.svg.line()
+            .x((d: IWeatherDatum) => this.xScalePlot(d.date))
+            .y((d: IWeatherDatum) => this.yScalePlot(d.lo));
+        this.lines = [avgLine, highLine, lowLine];
+
     }
 
     private setupDOM(container: D3.Selection) {
@@ -83,15 +96,33 @@ class Chart {
         this.yAxisEl = this.svg.append("g")
             .attr("class", "y axis");
 
-        this.pathEl = this.svg.append("path");
+        this.plot = this.svg.append("g");
+
+        this.avgEl = this.plot.append("path").classed("avg", true);
+        this.hiEl = this.plot.append("path").classed("hi", true);
+        this.loEl = this.plot.append("path").classed("lo", true);
     }
 
-    private initialRender(data: ITimeseriesDatum[]) {
+    private initialRender() {
+        var dateDomain = d3.extent(this.data, function(d) { return d.date; });
+        var rangeDomain = [-10, 100];
+        this.xScalePlot.domain(dateDomain);
+        this.xScaleAxis.domain(dateDomain);
+        this.yScalePlot.domain(rangeDomain);
+        this.yScaleAxis.domain(rangeDomain);
         this.xAxisEl.call(this.xAxis);
         this.yAxisEl.call(this.yAxis);
-        this.pathEl.datum(data)
+
+        this.avgEl.datum(this.data)
             .attr("class", "line")
-            .attr("d", this.line);
+            .attr("d", this.lines[0]);
+        this.hiEl.datum(this.data)
+            .attr("class", "line")
+            .attr("d", this.lines[1]);
+        this.loEl.datum(this.data)
+            .attr("class", "line")
+            .attr("d", this.lines[2]);
+
     }
 }
 
@@ -119,4 +150,4 @@ class ChartGen {
     }
 }
 
-new ChartGen(2);
+new ChartGen(1);
