@@ -22,9 +22,9 @@ interface IWeatherDatum {
 
 
 class Chart {
-    public static margin = { top: 20, right: 20, bottom: 30, left: 50 };
-    public static width = 560 - Chart.margin.left - Chart.margin.right;
-    public static height = 500 - Chart.margin.top - Chart.margin.bottom;
+    public static margin = { top: 20, right: 20, bottom: 30, left: 30 };
+    public static width = 300 - Chart.margin.left - Chart.margin.right;
+    public static height = 300 - Chart.margin.top - Chart.margin.bottom;
     private static attributes = ["avg","avgh","avgl","hi","hih","hil","lo","loh","lol","precip","day"]
     private static parseDate = d3.time.format("%Y-%m-%d").parse;
 
@@ -150,4 +150,4 @@ class ChartGen {
     }
 }
 
-new ChartGen(1);
+new ChartGen(4);
