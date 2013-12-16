@@ -1,5 +1,5 @@
 ///<reference path="d3.d.ts" />
-
+///<reference path="FPSMeter.d.ts" />
 interface ITimeseriesDatum {
     x: any;
     y: number;
@@ -182,7 +182,7 @@ interface IZoomWithId extends D3.Behavior.Zoom {
 
 class ZoomCoordinator {
     public zooms: IZoomWithId[];
-
+    public meter: FPSMeter;
 
     constructor(public charts: Chart[]) {
         this.zooms = charts.map((c, id) => {
@@ -194,6 +194,7 @@ class ZoomCoordinator {
             z.y(c.yScale);
             return z;
         });
+        this.meter = new FPSMeter();
     }
 
     public synchronize(zoom: IZoomWithId) {
@@ -207,6 +208,7 @@ class ZoomCoordinator {
         this.charts.forEach((c) => {
             c.rerender();
         });
+        this.meter.tick();
     }
 }
 
