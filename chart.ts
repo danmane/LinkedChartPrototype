@@ -25,11 +25,10 @@ class Chart {
     private static attributes = ["avg", "avgh", "avgl", "hi", "hih", "hil", "lo", "loh", "lol", "precip", "day"]
     private static parseDate = d3.time.format("%Y-%m-%d").parse;
 
+    public div: D3.Selection;
     public svg: D3.Selection;
-    public xScalePlot: D3.Scale.TimeScale;
-    public yScalePlot: D3.Scale.LinearScale;
-    public xScaleAxis: D3.Scale.TimeScale;
-    public yScaleAxis: D3.Scale.LinearScale;
+    public xScale: D3.Scale.TimeScale;
+    public yScale: D3.Scale.LinearScale;
     public xAxis: D3.Svg.Axis;
     public yAxis: D3.Svg.Axis;
     public xAxisEl: D3.Selection;
@@ -57,33 +56,33 @@ class Chart {
         this.setupDOM(container);
         d3.csv(url, (error, data) => {
             this.data = Chart.processCSVData(data);
-            this.initialRender();
+            this.initialRender(container);
         });
     }
 
     private setupD3Objects() {
-        this.xScalePlot = d3.time.scale().range([0, this.width]);
-        this.xScaleAxis = d3.time.scale().range([0, this.width]);
-        this.yScalePlot = d3.scale.linear().range([0, this.height]);
-        this.yScaleAxis = d3.scale.linear().range([0, this.height]);
+        this.xScale = d3.time.scale().range([0, this.width]);
+        this.yScale = d3.scale.linear().range([0, this.height]);
 
-        this.xAxis = d3.svg.axis().scale(this.xScaleAxis).orient("bottom");
-        this.yAxis = d3.svg.axis().scale(this.yScaleAxis).orient("left");
+        this.xAxis = d3.svg.axis().scale(this.xScale).orient("bottom");
+        this.yAxis = d3.svg.axis().scale(this.yScale).orient("left");
         var avgLine = d3.svg.line()
-            .x((d: IWeatherDatum) => this.xScalePlot(d.date))
-            .y((d: IWeatherDatum) => this.yScalePlot(d.avg));
+            .x((d: IWeatherDatum) => this.xScale(d.date))
+            .y((d: IWeatherDatum) => this.yScale(d.avg));
         var highLine = d3.svg.line()
-            .x((d: IWeatherDatum) => this.xScalePlot(d.date))
-            .y((d: IWeatherDatum) => this.yScalePlot(d.hi));
+            .x((d: IWeatherDatum) => this.xScale(d.date))
+            .y((d: IWeatherDatum) => this.yScale(d.hi));
         var lowLine = d3.svg.line()
-            .x((d: IWeatherDatum) => this.xScalePlot(d.date))
-            .y((d: IWeatherDatum) => this.yScalePlot(d.lo));
+            .x((d: IWeatherDatum) => this.xScale(d.date))
+            .y((d: IWeatherDatum) => this.yScale(d.lo));
         this.lines = [avgLine, highLine, lowLine];
-
     }
 
     private setupDOM(container: D3.Selection) {
-        this.svg = container.append("svg")
+        this.div = container.append("div")
+            .attr("height", this.height)
+            .attr("width",  this.width);
+        this.svg = this.div.append("svg")
             .attr("height", this.height)
             .attr("width",  this.width);
         this.height -= Chart.margin.top  + Chart.margin.bottom;
@@ -106,13 +105,13 @@ class Chart {
         this.loEl = this.plot.append("path").classed("lo", true);
     }
 
-    private initialRender() {
+    private initialRender(container) {
         var dateDomain = d3.extent(this.data, function(d) { return d.date; });
         var rangeDomain = [100, 0];
-        this.xScalePlot.domain(dateDomain);
-        this.xScaleAxis.domain(dateDomain);
-        this.yScalePlot.domain(rangeDomain);
-        this.yScaleAxis.domain(rangeDomain);
+        this.xScale.domain(dateDomain);
+        this.xScale.domain(dateDomain);
+        this.yScale.domain(rangeDomain);
+        this.yScale.domain(rangeDomain);
         this.xAxisEl.call(this.xAxis);
         this.yAxisEl.call(this.yAxis);
 
@@ -126,8 +125,21 @@ class Chart {
             .classed("line", true)
             .attr("d", this.lines[2]);
 
-        // var width =
+        var zoom = d3.behavior.zoom();
+        zoom.x(this.xScale);
+        zoom.y(this.yScale);
+        zoom(this.div);
+        zoom.on("zoom", () => this.rerender());
+        // zoom.zoom(this.plot);
+        (<any> window).zoom = zoom;
+    }
 
+    private rerender() {
+        this.xAxisEl.call(this.xAxis);
+        this.yAxisEl.call(this.yAxis);
+        this.avgEl.attr("d", this.lines[0]);
+        this.hiEl .attr("d", this.lines[1]);
+        this.loEl .attr("d", this.lines[2]);
     }
 }
 
