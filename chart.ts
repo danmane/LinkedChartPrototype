@@ -110,21 +110,15 @@ class Chart {
         var dateDomain = d3.extent(this.data, function(d) { return d.date; });
         var rangeDomain = [100, 0];
         this.xScale.domain(dateDomain);
-        this.xScale.domain(dateDomain);
         this.yScale.domain(rangeDomain);
-        this.yScale.domain(rangeDomain);
-        this.xAxisEl.call(this.xAxis);
-        this.yAxisEl.call(this.yAxis);
 
         this.avgEl.datum(this.data)
-            .classed("line", true)
-            .attr("d", this.lines[0]);
+            .classed("line", true);
         this.hiEl.datum(this.data)
-            .classed("line", true)
-            .attr("d", this.lines[1]);
+            .classed("line", true);
         this.loEl.datum(this.data)
-            .classed("line", true)
-            .attr("d", this.lines[2]);
+            .classed("line", true);
+        this.rerender();
     }
 
     public rerender() {
