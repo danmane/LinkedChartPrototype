@@ -51,12 +51,13 @@ class Chart {
         return <IWeatherDatum[]> indata;
     }
 
-    constructor(container: D3.Selection, url: string, public height: number, public width: number) {
+    constructor(container: D3.Selection, url: string, public height: number, public width: number, readyCallback) {
         this.setupD3Objects();
         this.setupDOM(container);
         d3.csv(url, (error, data) => {
             this.data = Chart.processCSVData(data);
-            this.initialRender(container);
+            this.initialRender();
+            readyCallback(); // oo this is hacky
         });
     }
 
@@ -105,7 +106,7 @@ class Chart {
         this.loEl = this.plot.append("path").classed("lo", true);
     }
 
-    private initialRender(container) {
+    private initialRender() {
         var dateDomain = d3.extent(this.data, function(d) { return d.date; });
         var rangeDomain = [100, 0];
         this.xScale.domain(dateDomain);
@@ -124,17 +125,9 @@ class Chart {
         this.loEl.datum(this.data)
             .classed("line", true)
             .attr("d", this.lines[2]);
-
-        var zoom = d3.behavior.zoom();
-        zoom.x(this.xScale);
-        zoom.y(this.yScale);
-        zoom(this.div);
-        zoom.on("zoom", () => this.rerender());
-        // zoom.zoom(this.plot);
-        (<any> window).zoom = zoom;
     }
 
-    private rerender() {
+    public rerender() {
         this.xAxisEl.call(this.xAxis);
         this.yAxisEl.call(this.yAxis);
         this.avgEl.attr("d", this.lines[0]);
@@ -143,8 +136,21 @@ class Chart {
     }
 }
 
+var readyCallback = (numToTrigger: number, callbackWhenReady: () => any) => {
+    var timesCalled = 0;
+    return () => {
+           timesCalled++;
+        if (timesCalled === numToTrigger) {
+            callbackWhenReady();
+        }
+    }
+}
+
 class ChartGen {
     public charts: Chart[];
+    private chartsReady: number; //hackhack
+    private zoomCoordinator: ZoomCoordinator;
+
     constructor(public numCharts: number) {
         this.charts = [];
         d3.json("Data/cityNames.json", (error, data) => {
@@ -152,15 +158,54 @@ class ChartGen {
         });
     }
 
+    private setupZoomCoordinator() {
+        this.zoomCoordinator = new ZoomCoordinator(this.charts);
+    }
     public makeCharts(numCharts: number, fileNames: string[]) {
         var containerSelection = d3.select("body");
         var chartsToSide = Math.ceil(Math.sqrt(this.numCharts));
         var width  = window.innerWidth  / chartsToSide - 30;
         var height = window.innerHeight / chartsToSide - 10;
+        var readyFunction = readyCallback(numCharts, () => this.setupZoomCoordinator());
         fileNames = fileNames.slice(0, numCharts);
         fileNames.forEach((fileName: string) => {
             fileName = "Data/" + fileName;
-            this.charts.push(new Chart(containerSelection, fileName, height, width));
+            this.charts.push(new Chart(containerSelection, fileName, height, width, readyFunction));
+        });
+    }
+}
+
+interface IZoomWithId extends D3.Behavior.Zoom {
+    id: number;
+}
+
+
+class ZoomCoordinator {
+    public zooms: IZoomWithId[];
+
+
+    constructor(public charts: Chart[]) {
+        this.zooms = charts.map((c, id) => {
+            var z = <IZoomWithId> d3.behavior.zoom();
+            z.id = id;
+            z(c.div);
+            z.on("zoom", () => this.synchronize(z));
+            z.x(c.xScale);
+            z.y(c.yScale);
+            return z;
+        });
+    }
+
+    public synchronize(zoom: IZoomWithId) {
+        var translate = zoom.translate();
+        var scale = zoom.scale();
+        var hasUniqId = (z: IZoomWithId) => z.id != zoom.id;
+        this.zooms.filter(hasUniqId).forEach((z) => {
+            z.translate(translate);
+            z.scale(scale);
+        });
+        this.charts.forEach((c) => {
+            c.rerender();
         });
     }
 }
