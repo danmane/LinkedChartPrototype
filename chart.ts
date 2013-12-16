@@ -64,8 +64,8 @@ class Chart {
     private setupD3Objects() {
         this.xScale = d3.time.scale().range([0, this.width]);
         this.yScale = d3.scale.linear().range([0, this.height]);
-
-        this.xAxis = d3.svg.axis().scale(this.xScale).orient("bottom");
+        var formatter = d3.time.format("%b");
+        this.xAxis = d3.svg.axis().scale(this.xScale).orient("bottom").tickFormat(formatter);
         this.yAxis = d3.svg.axis().scale(this.yScale).orient("left");
         var avgLine = d3.svg.line()
             .x((d: IWeatherDatum) => this.xScale(d.date))
@@ -178,7 +178,6 @@ class ChartGen {
 interface IZoomWithId extends D3.Behavior.Zoom {
     id: number;
 }
-
 
 class ZoomCoordinator {
     public zooms: IZoomWithId[];
