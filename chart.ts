@@ -39,6 +39,7 @@ class Chart {
     public plot: D3.Selection;
     public lines: D3.Svg.Line[];
     public data: IWeatherDatum[];
+    public render: D3.Selection;
 
     public static processCSVData(indata: any) {
         indata.forEach((d: any) => {
@@ -100,10 +101,10 @@ class Chart {
             .attr("transform", "translate(25)");
 
         this.plot = this.svg.append("g").attr("transform", "translate(" + Chart.margin.left + ",0)");
-
-        this.avgEl = this.plot.append("path").classed("avg", true);
-        this.hiEl = this.plot.append("path").classed("hi", true);
-        this.loEl = this.plot.append("path").classed("lo", true);
+        this.render = this.plot.append("g").classed("render", true);
+        this.avgEl = this.render.append("path").classed("avg", true);
+        this.hiEl  = this.render.append("path").classed("hi", true);
+        this.loEl  = this.render.append("path").classed("lo", true);
     }
 
     private initialRender() {
@@ -118,15 +119,17 @@ class Chart {
             .classed("line", true);
         this.loEl.datum(this.data)
             .classed("line", true);
-        this.rerender(null, null);
-    }
-
-    public rerender(xTicks: any[], yTicks: any[]) {
-        this.xAxisEl.call(this.xAxis.tickValues(xTicks));
-        this.yAxisEl.call(this.yAxis.tickValues(yTicks));
+        this.xAxisEl.call(this.xAxis);
+        this.yAxisEl.call(this.yAxis);
         this.avgEl.attr("d", this.lines[0]);
         this.hiEl .attr("d", this.lines[1]);
         this.loEl .attr("d", this.lines[2]);
+    }
+
+    public rerender(xTicks: any[], yTicks: any[], translate, scale) {
+        this.xAxisEl.call(this.xAxis.tickValues(xTicks));
+        this.yAxisEl.call(this.yAxis.tickValues(yTicks));
+        this.render.attr("transform", "translate("+translate+") scale("+scale+")");
     }
 }
 
@@ -208,7 +211,7 @@ class ZoomCoordinator {
         var xTicks = this.xScale.ticks(10);
         var yTicks = this.yScale.ticks(10);
         this.charts.forEach((c) => {
-            c.rerender(xTicks, yTicks);
+            c.rerender(xTicks, yTicks, translate, scale);
         });
         this.meter.tick();
     }
