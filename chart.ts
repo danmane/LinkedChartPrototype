@@ -20,6 +20,33 @@ interface IWeatherDatum {
     date: Date;
 }
 
+(<any> window).aggregates = {};
+
+var timerGen = (name) => {
+    var start = null;
+    (<any> window).aggregates[name] = 0;
+    var chrff = performance.now != null;
+    return () => {
+        if (start == null) {
+            chrff ? start = performance.now() : start = Date.now();
+        } else {
+            (<any> window).aggregates[name] += chrff ? performance.now() - start : Date.now() - start;
+            start = null;
+        }
+    }
+}
+
+var frameRateCB = timerGen("frameRate");
+var axisCB      = timerGen("axis");
+var transformCB = timerGen("transform");
+
+(<any> window).computeTime = () => {
+    var a = (<any> window).aggregates;
+    console.log("percentageAxis: ", a["axis"] / a["frameRate"]);
+    console.log("percentageXform: ", a["transform"] / a["frameRate"]);
+}
+
+
 class Chart {
     public static margin = { top: 20, right: 20, bottom: 30, left: 60 };
     private static attributes = ["avg", "avgh", "avgl", "hi", "hih", "hil", "lo", "loh", "lol", "precip", "day"]
@@ -27,8 +54,6 @@ class Chart {
 
     public div: D3.Selection;
     public svg: D3.Selection;
-    // public xScale: D3.Scale.TimeScale;
-    // public yScale: D3.Scale.LinearScale;
     public xAxis: D3.Svg.Axis;
     public yAxis: D3.Svg.Axis;
     public xAxisEl: D3.Selection;
@@ -133,9 +158,13 @@ class Chart {
     }
 
     public rerender(xTicks: any[], yTicks: any[], translate, scale) {
+        axisCB();
         this.xAxisEl.call(this.xAxis.tickValues(xTicks));
         this.yAxisEl.call(this.yAxis.tickValues(yTicks));
+        axisCB();
+        transformCB();
         this.render.attr("transform", "translate("+translate+") scale("+scale+")");
+        transformCB();
     }
 }
 
@@ -203,6 +232,7 @@ class ZoomCoordinator {
     }
 
     public synchronize(zoom: IZoomWithId) {
+        frameRateCB();
         var translate = zoom.translate();
         var scale = zoom.scale();
         var hasUniqId = (z: IZoomWithId) => z.id != zoom.id;
@@ -216,7 +246,10 @@ class ZoomCoordinator {
             c.rerender(xTicks, yTicks, translate, scale);
         });
         this.meter.tick();
+        frameRateCB();
     }
 }
 
 new ChartGen(9);
+
+
