@@ -27,8 +27,8 @@ class Chart {
 
     public div: D3.Selection;
     public svg: D3.Selection;
-    public xScale: D3.Scale.TimeScale;
-    public yScale: D3.Scale.LinearScale;
+    // public xScale: D3.Scale.TimeScale;
+    // public yScale: D3.Scale.LinearScale;
     public xAxis: D3.Svg.Axis;
     public yAxis: D3.Svg.Axis;
     public xAxisEl: D3.Selection;
@@ -52,7 +52,15 @@ class Chart {
         return <IWeatherDatum[]> indata;
     }
 
-    constructor(container: D3.Selection, url: string, public height: number, public width: number, readyCallback) {
+    constructor(
+        container: D3.Selection,
+        url: string,
+        public height: number,
+        public width: number,
+        readyCallback: Function,
+        public xScale: D3.Scale.TimeScale,
+        public yScale: D3.Scale.LinearScale
+    ) {
         this.setupD3Objects();
         this.setupDOM(container);
         d3.csv(url, (error, data) => {
@@ -63,8 +71,6 @@ class Chart {
     }
 
     private setupD3Objects() {
-        this.xScale = d3.time.scale().range([0, this.width]);
-        this.yScale = d3.scale.linear().range([0, this.height]);
         var formatter = d3.time.format("%b");
         this.xAxis = d3.svg.axis().scale(this.xScale).orient("bottom").tickFormat(formatter);
         this.yAxis = d3.svg.axis().scale(this.yScale).orient("left");
@@ -155,19 +161,21 @@ class ChartGen {
         });
     }
 
-    private setupZoomCoordinator() {
-        this.zoomCoordinator = new ZoomCoordinator(this.charts);
+    private setupZoomCoordinator(xScale, yScale) {
+        this.zoomCoordinator = new ZoomCoordinator(this.charts, xScale, yScale);
     }
     public makeCharts(numCharts: number, fileNames: string[]) {
         var containerSelection = d3.select("body");
         var chartsToSide = Math.ceil(Math.sqrt(this.numCharts));
         var width  = window.innerWidth  / chartsToSide - 30;
         var height = window.innerHeight / chartsToSide - 10;
-        var readyFunction = readyCallback(numCharts, () => this.setupZoomCoordinator());
+        var xScale = d3.time.scale().range([0, width]);
+        var yScale = d3.scale.linear().range([0, height]);
+        var readyFunction = readyCallback(numCharts, () => this.setupZoomCoordinator(xScale, yScale));
         fileNames = fileNames.slice(0, numCharts);
         fileNames.forEach((fileName: string) => {
             fileName = "Data/" + fileName;
-            this.charts.push(new Chart(containerSelection, fileName, height, width, readyFunction));
+            this.charts.push(new Chart(containerSelection, fileName, height, width, readyFunction, xScale, yScale));
         });
     }
 }
@@ -178,23 +186,17 @@ interface IZoomWithId extends D3.Behavior.Zoom {
 
 class ZoomCoordinator {
     public zooms: IZoomWithId[];
-    public xScale: D3.Scale.TimeScale;
-    public yScale: D3.Scale.LinearScale;
+
     public meter: FPSMeter;
 
-    constructor(public charts: Chart[]) {
-        this.xScale = charts[0].xScale;
-        this.yScale = charts[0].yScale;
-
+    constructor(public charts: Chart[], public xScale: D3.Scale.TimeScale, public yScale: D3.Scale.LinearScale) {
         this.zooms = charts.map((c, id) => {
-            c.xScale = this.xScale;
-            c.yScale = this.yScale;
             var z = <IZoomWithId> d3.behavior.zoom();
             z.id = id;
             z(c.div);
             z.on("zoom", () => this.synchronize(z));
-            z.x(c.xScale);
-            z.y(c.yScale);
+            z.x(this.xScale);
+            z.y(this.yScale);
             return z;
         });
         this.meter = new FPSMeter();
