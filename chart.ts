@@ -118,12 +118,12 @@ class Chart {
             .classed("line", true);
         this.loEl.datum(this.data)
             .classed("line", true);
-        this.rerender();
+        this.rerender(null, null);
     }
 
-    public rerender() {
-        this.xAxisEl.call(this.xAxis);
-        this.yAxisEl.call(this.yAxis);
+    public rerender(xTicks: any[], yTicks: any[]) {
+        this.xAxisEl.call(this.xAxis.tickValues(xTicks));
+        this.yAxisEl.call(this.yAxis.tickValues(yTicks));
         this.avgEl.attr("d", this.lines[0]);
         this.hiEl .attr("d", this.lines[1]);
         this.loEl .attr("d", this.lines[2]);
@@ -175,10 +175,17 @@ interface IZoomWithId extends D3.Behavior.Zoom {
 
 class ZoomCoordinator {
     public zooms: IZoomWithId[];
+    public xScale: D3.Scale.TimeScale;
+    public yScale: D3.Scale.LinearScale;
     public meter: FPSMeter;
 
     constructor(public charts: Chart[]) {
+        this.xScale = charts[0].xScale;
+        this.yScale = charts[0].yScale;
+
         this.zooms = charts.map((c, id) => {
+            c.xScale = this.xScale;
+            c.yScale = this.yScale;
             var z = <IZoomWithId> d3.behavior.zoom();
             z.id = id;
             z(c.div);
@@ -198,8 +205,10 @@ class ZoomCoordinator {
             z.translate(translate);
             z.scale(scale);
         });
+        var xTicks = this.xScale.ticks(10);
+        var yTicks = this.yScale.ticks(10);
         this.charts.forEach((c) => {
-            c.rerender();
+            c.rerender(xTicks, yTicks);
         });
         this.meter.tick();
     }
