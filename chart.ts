@@ -93,7 +93,6 @@ class Chart {
     public loEl: D3.Selection;
     public plot: D3.Selection;
     public lines: D3.Svg.Line[];
-    public data: IWeatherDatum[];
     public render: D3.Selection;
 
     public static processCSVData(indata: any) {
@@ -109,20 +108,15 @@ class Chart {
 
     constructor(
         container: D3.Selection,
-        url: string,
         public height: number,
         public width: number,
-        readyCallback: Function,
         public xScale: D3.Scale.TimeScale,
-        public yScale: D3.Scale.LinearScale
+        public yScale: D3.Scale.LinearScale,
+        public data: IWeatherDatum[]
     ) {
         this.setupD3Objects();
         this.setupDOM(container);
-        d3.csv(url, (error, data) => {
-            this.data = Chart.processCSVData(data);
-            this.initialRender();
-            readyCallback(); // oo this is hacky
-        });
+        this.initialRender();
     }
 
     private setupD3Objects() {
@@ -234,7 +228,10 @@ class ChartGen {
         fileNames = fileNames.slice(0, numCharts);
         fileNames.forEach((fileName: string) => {
             fileName = "Data/" + fileName;
-            this.charts.push(new Chart(containerSelection, fileName, height, width, readyFunction, xScale, yScale));
+            d3.csv(fileName, (error, data) => {        	
+	            this.charts.push(new Chart(containerSelection, height, width, xScale, yScale, data));
+	            readyFunction();
+        	})
         });
     }
 }
