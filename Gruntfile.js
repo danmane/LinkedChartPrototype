@@ -38,11 +38,7 @@ module.exports = function(grunt) {
     }
   });
 
-
   require('load-grunt-tasks')(grunt);
-
-
-
   // default task (this is what runs when a task isn't specified)
   grunt.registerTask("default", "build");
 
