@@ -1,5 +1,7 @@
 ///<reference path="d3.d.ts" />
 ///<reference path="FPSMeter.d.ts" />
+///<reference path="chart.d.ts" />
+
 interface ITimeseriesDatum {
     x: any;
     y: number;
@@ -20,32 +22,60 @@ interface IWeatherDatum {
     date: Date;
 }
 
-(<any> window).aggregates = {};
 
-var timerGen = (name) => {
-    var start = null;
-    (<any> window).aggregates[name] = 0;
-    var chrff = performance.now != null;
-    return () => {
-        if (start == null) {
-            chrff ? start = performance.now() : start = Date.now();
+class PerfDiagnostics {
+    private static diagnostics: { [measurementName: string]: PerfDiagnostics; } = {};
+    private total: number;
+    private start: number;
+
+    public static toggle(measurementName: string) {
+        if (PerfDiagnostics.diagnostics[measurementName] != null) {
+            var diagnostic = PerfDiagnostics.diagnostics[measurementName];
         } else {
-            (<any> window).aggregates[name] += chrff ? performance.now() - start : Date.now() - start;
-            start = null;
+            var diagnostic = new PerfDiagnostics();
+            PerfDiagnostics.diagnostics[measurementName] = diagnostic;
+        }
+        diagnostic.toggle();
+    }
+
+    private static getTime() {
+        if (performance.now) {
+            return performance.now();
+        } else {
+            return Date.now();
+        }
+    }
+
+    public static logResults() {
+        var grandTotal = PerfDiagnostics.diagnostics["total"] ? PerfDiagnostics.diagnostics["total"].total : null;
+        var measurementNames: string[] = Object.keys(PerfDiagnostics.diagnostics);
+        measurementNames.forEach((measurementName: string) => {
+            var result = PerfDiagnostics.diagnostics[measurementName].total;
+            console.log(measurementName);
+            console.group();
+            console.log("Time:", result);
+            (grandTotal && measurementName !== "total") ? console.log("%   :", Math.round(result/grandTotal * 10000) / 100) : null;
+            console.groupEnd();
+        });
+        
+    }
+
+    constructor() {
+        this.total = 0;
+        this.start = null;
+    }
+
+    public toggle() {
+        if (this.start == null) {
+            this.start = PerfDiagnostics.getTime();
+        } else {
+            this.total += PerfDiagnostics.getTime() - this.start;
+            this.start = null;
         }
     }
 }
 
-var frameRateCB = timerGen("frameRate");
-var axisCB      = timerGen("axis");
-var transformCB = timerGen("transform");
-
-(<any> window).computeTime = () => {
-    var a = (<any> window).aggregates;
-    console.log("percentageAxis: ", a["axis"] / a["frameRate"]);
-    console.log("percentageXform: ", a["transform"] / a["frameRate"]);
-}
-
+(<any> window).report = PerfDiagnostics.logResults;
 
 class Chart {
     public static margin = { top: 20, right: 20, bottom: 30, left: 60 };
@@ -158,13 +188,13 @@ class Chart {
     }
 
     public rerender(xTicks: any[], yTicks: any[], translate, scale) {
-        axisCB();
+        PerfDiagnostics.toggle("axis");
         this.xAxisEl.call(this.xAxis.tickValues(xTicks));
         this.yAxisEl.call(this.yAxis.tickValues(yTicks));
-        axisCB();
-        transformCB();
+        PerfDiagnostics.toggle("axis");
+        PerfDiagnostics.toggle("transform");
         this.render.attr("transform", "translate("+translate+") scale("+scale+")");
-        transformCB();
+        PerfDiagnostics.toggle("transform");
     }
 }
 
@@ -232,7 +262,7 @@ class ZoomCoordinator {
     }
 
     public synchronize(zoom: IZoomWithId) {
-        frameRateCB();
+        PerfDiagnostics.toggle("total");
         var translate = zoom.translate();
         var scale = zoom.scale();
         var hasUniqId = (z: IZoomWithId) => z.id != zoom.id;
@@ -246,7 +276,7 @@ class ZoomCoordinator {
             c.rerender(xTicks, yTicks, translate, scale);
         });
         this.meter.tick();
-        frameRateCB();
+        PerfDiagnostics.toggle("total");
     }
 }
 
