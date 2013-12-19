@@ -1,6 +1,5 @@
 ///<reference path="d3.d.ts" />
 ///<reference path="FPSMeter.d.ts" />
-///<reference path="chart.d.ts" />
 
 interface ITimeseriesDatum {
     x: any;
@@ -79,8 +78,6 @@ class PerfDiagnostics {
 
 class Chart {
     public static margin = { top: 20, right: 20, bottom: 30, left: 60 };
-    private static attributes = ["avg", "avgh", "avgl", "hi", "hih", "hil", "lo", "loh", "lol", "precip", "day"]
-    private static parseDate = d3.time.format("%Y-%m-%d").parse;
 
     public div: D3.Selection;
     public svg: D3.Selection;
@@ -94,17 +91,6 @@ class Chart {
     public plot: D3.Selection;
     public lines: D3.Svg.Line[];
     public render: D3.Selection;
-
-    public static processCSVData(indata: any) {
-        indata.forEach((d: any) => {
-            var dt = d; // TIL function arguments arent accessible from an inner-scope closure
-            Chart.attributes.forEach((a: string) => {
-                dt[a] = +dt[a];
-            });
-            d.date = Chart.parseDate(d.date);
-        });
-        return <IWeatherDatum[]> indata;
-    }
 
     constructor(
         container: D3.Selection,
@@ -202,10 +188,27 @@ var readyCallback = (numToTrigger: number, callbackWhenReady: () => any) => {
     }
 }
 
+class CSVParser {
+	private static attributes = ["avg", "avgh", "avgl", "hi", "hih", "hil", "lo", "loh", "lol", "precip", "day"]
+	private static parseDate = d3.time.format("%Y-%m-%d").parse;
+
+	public static processCSVData(indata: any) {
+	    indata.forEach((d: any) => {
+	        var dt = d; // TIL function arguments arent accessible from an inner-scope closure
+	        CSVParser.attributes.forEach((a: string) => {
+	            dt[a] = +dt[a];
+	        });
+	        d.date = CSVParser.parseDate(d.date);
+	    });
+	    return <IWeatherDatum[]> indata;
+	}
+}
+
 class ChartGen {
     public charts: Chart[];
     private chartsReady: number; //hackhack
     private zoomCoordinator: ZoomCoordinator;
+
 
     constructor(public numCharts: number) {
         this.charts = [];
@@ -228,8 +231,9 @@ class ChartGen {
         fileNames = fileNames.slice(0, numCharts);
         fileNames.forEach((fileName: string) => {
             fileName = "Data/" + fileName;
-            d3.csv(fileName, (error, data) => {        	
-	            this.charts.push(new Chart(containerSelection, height, width, xScale, yScale, data));
+            d3.csv(fileName, (error, data) => {
+            	var parsedData = CSVParser.processCSVData(data);        	
+	            this.charts.push(new Chart(containerSelection, height, width, xScale, yScale, parsedData));
 	            readyFunction();
         	})
         });
