@@ -2,11 +2,6 @@
 ///<reference path="../Lib/FPSMeter.d.ts" />
 ///<reference path="perfdiagnostics.ts" />
 
-interface ITimeseriesDatum {
-    x: any;
-    y: number;
-}
-
 interface IWeatherDatum {
     avg: number; // Average temperature on date
     avgh: number;
@@ -21,7 +16,6 @@ interface IWeatherDatum {
     day: number;
     date: Date;
 }
-
 
 class Chart {
     public static margin = { top: 20, right: 20, bottom: 30, left: 60 };
