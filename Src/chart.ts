@@ -48,7 +48,7 @@ class Chart {
 
     private setupD3Objects() {
         var formatter = d3.time.format("%b");
-        // this.xAxis = new Axis.Axis(this.xAxisContiner, this.xScale, "bottom", formatter);
+        this.xAxis = new Axis.Axis(this.xAxisContiner, this.xScale, "bottom", formatter);
         this.yAxis = new Axis.Axis(this.yAxisContiner, this.yScale, "left", null);
         this.lineRenderer = new MultiLineRenderer.MultiLineRenderer(this.plot, this.data, Chart.dataAttributesToDraw, this.xScale, this.yScale);
     }
@@ -82,14 +82,14 @@ class Chart {
         this.xScale.domain(dateDomain);
         this.yScale.domain(rangeDomain);
 
-        // this.xAxis.render();
+        this.xAxis.render();
         this.yAxis.render();
         this.lineRenderer.render();
     }
 
     public rerender(xTicks: any[], yTicks: any[], translate: number[], scale: number) {
         PerfDiagnostics.toggle("axis");
-        // this.xAxis.render(translate, scale);
+        this.xAxis.transform(translate, scale);
         this.yAxis.transform(translate, scale);
         PerfDiagnostics.toggle("axis");
         PerfDiagnostics.toggle("transform");
