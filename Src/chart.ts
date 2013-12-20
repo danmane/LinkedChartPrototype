@@ -48,7 +48,7 @@ class Chart {
 
     private setupD3Objects() {
         var formatter = d3.time.format("%b");
-        this.xAxis = new Axis.Axis(this.xAxisContiner, this.xScale, "bottom", formatter);
+        // this.xAxis = new Axis.Axis(this.xAxisContiner, this.xScale, "bottom", formatter);
         this.yAxis = new Axis.Axis(this.yAxisContiner, this.yScale, "left", null);
         this.lineRenderer = new MultiLineRenderer.MultiLineRenderer(this.plot, this.data, Chart.dataAttributesToDraw, this.xScale, this.yScale);
     }
@@ -82,15 +82,15 @@ class Chart {
         this.xScale.domain(dateDomain);
         this.yScale.domain(rangeDomain);
 
-        this.xAxis.render();
+        // this.xAxis.render();
         this.yAxis.render();
         this.lineRenderer.render();
     }
 
-    public rerender(xTicks: any[], yTicks: any[], translate, scale) {
+    public rerender(xTicks: any[], yTicks: any[], translate: number[], scale: number) {
         PerfDiagnostics.toggle("axis");
-        this.xAxis.render();
-        this.yAxis.render();
+        // this.xAxis.render(translate, scale);
+        this.yAxis.transform(translate, scale);
         PerfDiagnostics.toggle("axis");
         PerfDiagnostics.toggle("transform");
         this.lineRenderer.transform(translate, scale);
@@ -157,8 +157,8 @@ class ZoomCoordinator {
 
     public synchronize(zoom: IZoomWithId) {
         PerfDiagnostics.toggle("total");
-        var translate = zoom.translate();
-        var scale = zoom.scale();
+        var translate: any = zoom.translate();
+        var scale: any = zoom.scale();
         var hasUniqId = (z: IZoomWithId) => z.id != zoom.id;
         this.zooms.filter(hasUniqId).forEach((z) => {
             z.translate(translate);

@@ -42,7 +42,7 @@ module MultiLineRenderer {
             });
         }
 
-        public transform(translate: number, scale: number) {
+        public transform(translate: number[], scale: number) {
             this.renderArea.attr("transform", "translate("+translate+") scale("+scale+")");
         }
 
