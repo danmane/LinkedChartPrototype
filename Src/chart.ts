@@ -2,6 +2,7 @@
 ///<reference path="../Lib/FPSMeter.d.ts" />
 ///<reference path="perfdiagnostics.ts" />
 ///<reference path="axis.ts" />
+///<reference path="utils.ts" />
 
 interface IWeatherDatum {
     avg: number; // Average temperature on date
@@ -149,16 +150,6 @@ class Chart {
     }
 }
 
-var readyCallback = (numToTrigger: number, callbackWhenReady: () => any) => {
-    var timesCalled = 0;
-    return () => {
-           timesCalled++;
-        if (timesCalled === numToTrigger) {
-            callbackWhenReady();
-        }
-    }
-}
-
 class CSVParser {
 	private static attributes = ["avg", "avgh", "avgl", "hi", "hih", "hil", "lo", "loh", "lol", "precip", "day"]
 	private static parseDate = d3.time.format("%Y-%m-%d").parse;
@@ -198,7 +189,7 @@ class ChartGen {
         var height = window.innerHeight / chartsToSide - 10;
         var xScale = d3.time.scale().range([0, width]);
         var yScale = d3.scale.linear().range([0, height]);
-        var readyFunction = readyCallback(numCharts, () => this.setupZoomCoordinator(xScale, yScale));
+        var readyFunction = Utils.readyCallback(numCharts, () => this.setupZoomCoordinator(xScale, yScale));
         fileNames = fileNames.slice(0, numCharts);
         fileNames.forEach((fileName: string) => {
             fileName = "Data/" + fileName;
