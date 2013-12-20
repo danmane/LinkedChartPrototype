@@ -1,5 +1,5 @@
-///<reference path="d3.d.ts" />
-///<reference path="FPSMeter.d.ts" />
+///<reference path="../Lib/d3.d.ts" />
+///<reference path="../Lib/FPSMeter.d.ts" />
 ///<reference path="perfdiagnostics.ts" />
 
 interface ITimeseriesDatum {

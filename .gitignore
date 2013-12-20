@@ -1,2 +1,5 @@
 Data/Cache/*
 node_modules/*
+Src/*.js
+Src/*.js.map
+*.DS_Store

@@ -21,7 +21,7 @@ module.exports = function(grunt) {
           sourcemap: false,
           target: "ES5"
         },
-        src: ["chart.ts"],
+        src: ["Src/*.ts"],
         dest: "."
       }
     },

@@ -10,8 +10,7 @@
     {
         "typescript":
         [
-            "chart.ts",
-            "perfdiagnostics.ts"
+            "Src/*.ts"
         ]
     }
 }
