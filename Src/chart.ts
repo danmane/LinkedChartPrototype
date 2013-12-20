@@ -5,18 +5,18 @@
 ///<reference path="utils.ts" />
 
 interface IWeatherDatum {
-    avg: number; // Average temperature on date
-    avgh: number;
-    avgl: number;
-    hi: number;
-    hih: number;
-    hil: number;
-    lo: number;
-    loh: number;
-    lol: number;
+    avg   : number; // Average temperature on date
+    avgh  : number;
+    avgl  : number;
+    hi    : number;
+    hih   : number;
+    hil   : number;
+    lo    : number;
+    loh   : number;
+    lol   : number;
     precip: number;
-    day: number;
-    date: Date;
+    day   : number;
+    date  : Date;
 }
 
 class Chart {
@@ -44,12 +44,6 @@ class Chart {
         this.setupDOM(container);
         this.setupD3Objects();
         this.initialRender();
-    }
-
-    private makeLine(attributeName: string) {
-        return d3.svg.line()
-            .x((d: IWeatherDatum) => this.xScale(d.date))
-            .y((d: IWeatherDatum) => this.yScale(d[attributeName]));
     }
 
     private setupD3Objects() {
@@ -131,10 +125,10 @@ class ChartGen {
         fileNames.forEach((fileName: string) => {
             fileName = "Data/" + fileName;
             d3.csv(fileName, (error, data) => {
-            	var parsedData = Utils.processCSVData(data);        	
-	            this.charts.push(new Chart(containerSelection, height, width, xScale, yScale, parsedData));
-	            readyFunction();
-        	})
+                var parsedData = Utils.processCSVData(data);
+                this.charts.push(new Chart(containerSelection, height, width, xScale, yScale, parsedData));
+                readyFunction();
+            })
         });
     }
 }
