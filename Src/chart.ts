@@ -19,52 +19,6 @@ interface IWeatherDatum {
     date: Date;
 }
 
-interface ILineRenderer {
-    attribute: string;
-    line: D3.Svg.Line;
-    element: D3.Selection;
-}
-
-class MultiLineRenderer {
-    private renderArea: D3.Selection;
-    private renderers: ILineRenderer[];
-
-    constructor(
-        container: D3.Selection,
-        private data: IWeatherDatum[],
-        private attributes: string[],
-        private xScale: D3.Scale.TimeScale,
-        private yScale: D3.Scale.LinearScale
-    ) {
-        this.renderArea = container.append("g").classed("render-area", true);
-        this.renderers = this.attributes.map((attribute) => {
-            var line = d3.svg.line()
-                .x((d: IWeatherDatum) => this.xScale(d.date))
-                .y((d: IWeatherDatum) => this.yScale(d[attribute]));
-            var element = this.renderArea.append("path")
-                .classed("line", true)
-                .classed(attribute, true)
-                .datum(this.data);
-            return {
-                attribute: attribute,
-                line: line,
-                element: element
-            }
-        });
-    }
-
-    public render() {
-        this.renderers.forEach((r) => {
-            r.element.attr("d", r.line);
-        });
-    }
-
-    public transform(translate: number, scale: number) {
-        this.renderArea.attr("transform", "translate("+translate+") scale("+scale+")");
-    }
-
-}
-
 class Chart {
     private static margin = { top: 20, right: 20, bottom: 30, left: 60 };
     private static dataAttributesToDraw = ["avg", "hi", "lo"];
@@ -77,7 +31,7 @@ class Chart {
     private xAxisContiner: D3.Selection;
     private yAxisContiner: D3.Selection;
     private plot: D3.Selection;
-    private lineRenderer: MultiLineRenderer;
+    private lineRenderer: MultiLineRenderer.MultiLineRenderer;
 
     constructor(
         container: D3.Selection,
@@ -102,7 +56,7 @@ class Chart {
         var formatter = d3.time.format("%b");
         this.xAxis = new Axis.Axis(this.xAxisContiner, this.xScale, "bottom", formatter);
         this.yAxis = new Axis.Axis(this.yAxisContiner, this.yScale, "left", null);
-        this.lineRenderer = new MultiLineRenderer(this.plot, this.data, Chart.dataAttributesToDraw, this.xScale, this.yScale);
+        this.lineRenderer = new MultiLineRenderer.MultiLineRenderer(this.plot, this.data, Chart.dataAttributesToDraw, this.xScale, this.yScale);
     }
 
     private setupDOM(container: D3.Selection) {
@@ -150,27 +104,10 @@ class Chart {
     }
 }
 
-class CSVParser {
-	private static attributes = ["avg", "avgh", "avgl", "hi", "hih", "hil", "lo", "loh", "lol", "precip", "day"]
-	private static parseDate = d3.time.format("%Y-%m-%d").parse;
-
-	public static processCSVData(indata: any) {
-	    indata.forEach((d: any) => {
-	        var dt = d; // TIL function arguments arent accessible from an inner-scope closure
-	        CSVParser.attributes.forEach((a: string) => {
-	            dt[a] = +dt[a];
-	        });
-	        d.date = CSVParser.parseDate(d.date);
-	    });
-	    return <IWeatherDatum[]> indata;
-	}
-}
-
 class ChartGen {
     private charts: Chart[];
     private chartsReady: number; //hackhack
     private zoomCoordinator: ZoomCoordinator;
-
 
     constructor(private numCharts: number) {
         this.charts = [];
@@ -194,7 +131,7 @@ class ChartGen {
         fileNames.forEach((fileName: string) => {
             fileName = "Data/" + fileName;
             d3.csv(fileName, (error, data) => {
-            	var parsedData = CSVParser.processCSVData(data);        	
+            	var parsedData = Utils.processCSVData(data);        	
 	            this.charts.push(new Chart(containerSelection, height, width, xScale, yScale, parsedData));
 	            readyFunction();
         	})
