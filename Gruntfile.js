@@ -32,7 +32,7 @@ module.exports = function(grunt) {
         ],
         "files": [
           "Gruntfile.js",
-          "chart.ts"
+          "Src/*.ts"
         ]
       }
     }
@@ -44,7 +44,8 @@ module.exports = function(grunt) {
 
   grunt.registerTask("build",
     [
-      "typescript"
+      "typescript",
+      "watch"
     ]
   );
 };
