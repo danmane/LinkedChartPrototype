@@ -157,8 +157,8 @@ class ZoomCoordinator {
 
     public synchronize(zoom: IZoomWithId) {
         PerfDiagnostics.toggle("total");
-        var translate: any = zoom.translate();
-        var scale: any = zoom.scale();
+        var translate: number[] = zoom.translate();
+        var scale: number = zoom.scale();
         var hasUniqId = (z: IZoomWithId) => z.id != zoom.id;
         this.zooms.filter(hasUniqId).forEach((z) => {
             z.translate(translate);

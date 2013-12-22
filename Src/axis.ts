@@ -26,8 +26,6 @@ module Axis {
 
         private transformString(translate: number, scale: number) {
             var translateS = this.isXAligned ? ""+translate : "0," + translate;
-            // var scaleS     = this.isXAligned ? ""+scale     : "0," + scale;
-            // console.log(translateS);
             return "translate(" + translateS + ") scale(" + scale + ")";
         }
 
