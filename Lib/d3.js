@@ -9181,29 +9181,51 @@ d3 = function() {
   d3_time.months = d3_time.month.range;
   d3_time.months.utc = d3_time.month.utc.range;
   function d3_time_scale(linear, methods, format) {
+
     function scale(x) {
       return linear(x);
     }
+
     scale.invert = function(x) {
       return d3_time_scaleDate(linear.invert(x));
     };
+
     scale.domain = function(x) {
       if (!arguments.length) return linear.domain().map(d3_time_scaleDate);
       linear.domain(x);
       return scale;
     };
+
     function tickMethod(extent, count) {
-      var span = extent[1] - extent[0], target = span / count, i = d3.bisect(d3_time_scaleSteps, target);
-      return i == d3_time_scaleSteps.length ? [ methods.year, d3_scale_linearTickRange(extent.map(function(d) {
-        return d / 31536e6;
-      }), count)[2] ] : !i ? [ d3_time_scaleMilliseconds, d3_scale_linearTickRange(extent, count)[2] ] : methods[target / d3_time_scaleSteps[i - 1] < d3_time_scaleSteps[i] / target ? i - 1 : i];
+      var span = extent[1] - extent[0];
+      var target = span / count;
+      var i = d3.bisect(d3_time_scaleSteps, target);
+      if (i == d3_time_scaleSteps.length) {
+        return [methods.year, d3_scale_linearTickRange(extent.map(function(d) { return d / 31536e6; }), count)[2]]
+      } else {
+        if (!i) {
+          return [d3_time_scaleMilliseconds, d3_scale_linearTickRange(extent, count)[2]]
+        } else {
+          return methods[target / d3_time_scaleSteps[i - 1] < d3_time_scaleSteps[i] / target ? i - 1 : i]
+        }
+      }
+      // return i == d3_time_scaleSteps.length ? [methods.year, d3_scale_linearTickRange(extent.map(function(d) { return d / 31536e6; }), count)[2]]
+      //     : !i ? [d3_time_scaleMilliseconds, d3_scale_linearTickRange(extent, count)[2]]
+      //     : methods[target / d3_time_scaleSteps[i - 1] < d3_time_scaleSteps[i] / target ? i - 1 : i];
     }
+
     scale.nice = function(interval, skip) {
-      var domain = scale.domain(), extent = d3_scaleExtent(domain), method = interval == null ? tickMethod(extent, 10) : typeof interval === "number" && tickMethod(extent, interval);
+      var domain = scale.domain();
+      var extent = d3_scaleExtent(domain);
+      var method = interval == null ? tickMethod(extent, 10)
+            : typeof interval === "number" && tickMethod(extent, interval);
+
       if (method) interval = method[0], skip = method[1];
+
       function skipped(date) {
         return !isNaN(date) && !interval.range(date, d3_time_scaleDate(+date + 1), skip).length;
       }
+
       return scale.domain(d3_scale_nice(domain, skip > 1 ? {
         floor: function(date) {
           while (skipped(date = interval.floor(date))) date = d3_time_scaleDate(date - 1);
@@ -9215,19 +9237,26 @@ d3 = function() {
         }
       } : interval));
     };
+
     scale.ticks = function(interval, skip) {
-      var extent = d3_scaleExtent(scale.domain()), method = interval == null ? tickMethod(extent, 10) : typeof interval === "number" ? tickMethod(extent, interval) : !interval.range && [ {
-        range: interval
-      }, skip ];
+      var extent = d3_scaleExtent(scale.domain());
+      var method = interval == null ? tickMethod(extent, 10)
+            : typeof interval === "number" ? tickMethod(extent, interval)
+            : !interval.range && [{range: interval}, skip]; // assume deprecated range function
+
       if (method) interval = method[0], skip = method[1];
-      return interval.range(extent[0], d3_time_scaleDate(+extent[1] + 1), skip < 1 ? 1 : skip);
+
+      return interval.range(extent[0], d3_time_scaleDate(+extent[1] + 1), skip < 1 ? 1 : skip); // inclusive upper bound
     };
+
     scale.tickFormat = function() {
       return format;
     };
+
     scale.copy = function() {
       return d3_time_scale(linear.copy(), methods, format);
     };
+
     return d3_scale_linearRebind(scale, linear);
   }
   function d3_time_scaleDate(t) {
