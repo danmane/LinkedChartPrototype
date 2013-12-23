@@ -56,12 +56,17 @@ class Chart {
     private setupDOM(container: D3.Selection) {
         this.div = container.append("div")
             .attr("height", this.height)
-            .attr("width",  this.width);
+            .attr("width",  this.width)
+            .classed("chart-outer", true);
         this.svg = this.div.append("svg")
             .attr("height", this.height)
-            .attr("width",  this.width);
+            .attr("width",  this.width)
+            .classed("chart-inner", true);
         this.height -= Chart.margin.top  + Chart.margin.bottom;
         this.width  -= Chart.margin.left + Chart.margin.right;
+
+        this.plot = this.svg.append("g")
+            .classed("plot", true);
 
         this.xAxisContiner = this.svg.append("g")
             .classed("axis-container", true)
@@ -73,7 +78,6 @@ class Chart {
             .classed("y-axis", true)
             .attr("transform", "translate(25)");
 
-        this.plot = this.svg.append("g");//.attr("transform", "translate(" + Chart.margin.left + ",0)");
     }
 
     private initialRender() {

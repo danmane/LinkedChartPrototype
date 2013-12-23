@@ -19,7 +19,15 @@ div {
 
 .line {
   fill: none;
-  stroke: steelblue;
   stroke-width: 1.5px;
   vector-effect: non-scaling-stroke;
+}
+.avg {
+  stroke: black;
+}
+.hi {
+  stroke: orange;
+}
+.lo {
+  stroke: steelblue;
 }
