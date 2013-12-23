@@ -73,7 +73,7 @@ class Chart {
             .classed("y-axis", true)
             .attr("transform", "translate(25)");
 
-        this.plot = this.svg.append("g").attr("transform", "translate(" + Chart.margin.left + ",0)");
+        this.plot = this.svg.append("g");//.attr("transform", "translate(" + Chart.margin.left + ",0)");
     }
 
     private initialRender() {
@@ -99,7 +99,7 @@ class Chart {
 }
 
 class ChartGen {
-    private charts: Chart[];
+    public charts: Chart[];
     private chartsReady: number; //hackhack
     private zoomCoordinator: ZoomCoordinator;
 
@@ -174,6 +174,5 @@ class ZoomCoordinator {
     }
 }
 
-new ChartGen(9);
-
-
+var cg = new ChartGen(9);
+(<any> window).charts = cg.charts;

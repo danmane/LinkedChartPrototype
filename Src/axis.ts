@@ -26,7 +26,7 @@ module Axis {
 
         private transformString(translate: number, scale: number) {
             var translateS = this.isXAligned ? ""+translate : "0," + translate;
-            return "translate(" + translateS + ") scale(" + scale + ")";
+            return "translate(" + translateS + ")";
         }
 
         public render() {
@@ -36,14 +36,14 @@ module Axis {
 
         public transform(translatePair: number[], scale: number) {
             var translate = this.isXAligned ? translatePair[0] : translatePair[1];
-            // var scale     = this.isXAligned ? scalePair[0]     : scalePair[1];
             if (scale != null && scale != this.cachedScale) {
-              this.render();
+                this.cachedTranslate = translate;
+                this.render();
             } else {
-              var transform = this.transformString(translate, scale);
-              this.axisEl.attr("transform", transform);
+                translate -= this.cachedTranslate;
+                var transform = this.transformString(translate, scale);
+                this.axisEl.attr("transform", transform);
             }
-            this.cachedTranslate = translate;
             this.cachedScale = scale;
         }
     }
