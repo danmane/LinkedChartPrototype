@@ -8,9 +8,5 @@
 	],
     "settings":
     {
-        "typescript":
-        [
-            "Src/*.ts"
-        ]
     }
 }
