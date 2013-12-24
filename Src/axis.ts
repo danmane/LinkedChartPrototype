@@ -8,6 +8,18 @@ module Axis {
     private cachedTranslate: number;
     private isXAligned: boolean;
 
+    private static axisXTransform(selection, x) {
+      selection.attr("transform", function(d) {
+        return "translate(" + x(d) + ",0)";
+      });
+    }
+
+    private static axisYTransform(selection, y) {
+      selection.attr("transform", function(d) {
+        return "translate(0," + y(d) + ")";
+      });
+    }
+
     constructor(
       public container: D3.Selection,
       public scale: D3.Scale.Scale,
@@ -32,6 +44,11 @@ module Axis {
     public render() {
       this.axisEl.call(this.d3axis);
       this.axisEl.attr("transform","");
+    }
+
+    public rescale() {
+      var tickTransform = this.isXAligned ? Axis.axisXTransform : Axis.axisYTransform;
+
     }
 
     public transform(translatePair: number[], scale: number) {
