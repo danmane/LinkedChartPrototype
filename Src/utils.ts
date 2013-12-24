@@ -2,10 +2,10 @@ module Utils {
 	export function readyCallback(numToTrigger: number, callbackWhenReady: () => any) {
 		var timesCalled = 0;
 		return () => {
-		       timesCalled++;
-		    if (timesCalled === numToTrigger) {
-		        callbackWhenReady();
-		    }
+		     timesCalled++;
+		  if (timesCalled === numToTrigger) {
+		    callbackWhenReady();
+		  }
 		}
 	}
 
@@ -14,14 +14,14 @@ module Utils {
 		private static parseDate = d3.time.format("%Y-%m-%d").parse;
 
 		public static processCSVData(indata: any) {
-		    indata.forEach((d: any) => {
-		        var dt = d; // TIL function arguments arent accessible from an inner-scope closure
-		        CSVParser.attributes.forEach((a: string) => {
-		            dt[a] = +dt[a];
-		        });
-		        d.date = CSVParser.parseDate(d.date);
+		  indata.forEach((d: any) => {
+		    var dt = d; // TIL function arguments arent accessible from an inner-scope closure
+		    CSVParser.attributes.forEach((a: string) => {
+		      dt[a] = +dt[a];
 		    });
-		    return <IWeatherDatum[]> indata;
+		    d.date = CSVParser.parseDate(d.date);
+		  });
+		  return <IWeatherDatum[]> indata;
 		}
 	}
 	export function processCSVData(indata) {
