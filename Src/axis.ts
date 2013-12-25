@@ -42,6 +42,22 @@ module Axis {
     }
 
     public render() {
+      var domain = this.scale.domain();
+      var extent = Math.abs(domain[1] - domain[0]);
+      var min = +d3.min(domain);
+      var max = +d3.max(domain);
+      var newDomain: any;
+      var standardOrder = domain[0] < domain[1];
+      if (typeof(domain[0]) == "number") {
+        newDomain = standardOrder ? [min - extent, max + extent] : [max + extent, min - extent];
+      } else {
+        newDomain = standardOrder ? [new Date(min - extent), new Date(max + extent)] : [new Date(max + extent), new Date(min - extent)];
+      }
+      var copyScale = this.scale.copy().domain(newDomain)
+      var ticks = (<any> copyScale).ticks(30);
+      this.d3axis.tickValues(ticks);
+      // a = [100,0]; extent = -100; 100 - (-100) = 200, 0 - (-100) = 100
+      // a = [0,100]; extent = 100; 0 - 100 = -100, 100 - 100
       this.axisEl.call(this.d3axis);
     }
 
