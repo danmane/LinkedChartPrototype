@@ -48,19 +48,20 @@ module Axis {
 
     public rescale() {
       var tickTransform = this.isXAligned ? Axis.axisXTransform : Axis.axisYTransform;
-
+      var tickSelection = this.axisEl.selectAll(".tick");
+      (<any> tickSelection).call(tickTransform, this.scale);
     }
 
     public transform(translatePair: number[], scale: number) {
       var translate = this.isXAligned ? translatePair[0] : translatePair[1];
       if (scale != null && scale != this.cachedScale) {
         this.cachedTranslate = translate;
-        this.render();
+        this.rescale();
       } else {
-        translate -= this.cachedTranslate;
-        var transform = this.transformString(translate, scale);
-        this.axisEl.attr("transform", transform);
+        // translate -= this.cachedTranslate;
       }
+      var transform = this.transformString(translate, scale);
+      this.axisEl.attr("transform", transform);
       this.cachedScale = scale;
     }
   }

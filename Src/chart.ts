@@ -103,23 +103,29 @@ class Chart {
 }
 
 class ChartGen {
+  private static testMode = true;
   public charts: Chart[];
   private chartsReady: number; //hackhack
   private zoomCoordinator: ZoomCoordinator;
 
-  constructor(private numCharts: number) {
+  constructor(numCharts: number) {
     this.charts = [];
     d3.json("Data/cityNames.json", (error, data) => {
-      this.makeCharts(this.numCharts, d3.values(data));
+      if (ChartGen.testMode) {
+        this.makeCharts(1, ["test.csv"])
+      } else {
+        this.makeCharts(numCharts, d3.values(data));
+      }
     });
   }
 
   private setupZoomCoordinator(xScale, yScale) {
     this.zoomCoordinator = new ZoomCoordinator(this.charts, xScale, yScale);
   }
+
   public makeCharts(numCharts: number, fileNames: string[]) {
     var containerSelection = d3.select("body");
-    var chartsToSide = Math.ceil(Math.sqrt(this.numCharts));
+    var chartsToSide = Math.ceil(Math.sqrt(numCharts));
     var width  = window.innerWidth  / chartsToSide - 30;
     var height = window.innerHeight / chartsToSide - 10;
     var xScale = d3.time.scale().range([0, width]);
