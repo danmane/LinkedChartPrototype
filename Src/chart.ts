@@ -91,7 +91,7 @@ class Chart {
     this.lineRenderer.render();
   }
 
-  public rerender(xTicks: any[], yTicks: any[], translate: number[], scale: number) {
+  public rerender(translate: number[], scale: number) {
     PerfDiagnostics.toggle("axis");
     this.xAxis.transform(translate, scale);
     this.yAxis.transform(translate, scale);
@@ -177,7 +177,7 @@ class ZoomCoordinator {
     var xTicks = this.xScale.ticks(10);
     var yTicks = this.yScale.ticks(10);
     this.charts.forEach((c) => {
-      c.rerender(xTicks, yTicks, translate, scale);
+      c.rerender(translate, scale);
     });
     this.meter.tick();
     PerfDiagnostics.toggle("total");
