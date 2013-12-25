@@ -43,13 +43,26 @@ module Axis {
 
     public render() {
       this.axisEl.call(this.d3axis);
-      this.axisEl.attr("transform","");
     }
 
     public rescale() {
       var tickTransform = this.isXAligned ? Axis.axisXTransform : Axis.axisYTransform;
       var tickSelection = this.axisEl.selectAll(".tick");
       (<any> tickSelection).call(tickTransform, this.scale);
+      this.axisEl.attr("transform","");
+    }
+
+    public transform(translatePair: number[], scale: number) {
+      var translate = this.isXAligned ? translatePair[0] : translatePair[1];
+      if (scale != null && scale != this.cachedScale) {
+        this.cachedTranslate = translate;
+        this.cachedScale = scale;
+        this.rescale();
+      } else {
+        translate -= this.cachedTranslate;
+        var transform = this.transformString(translate, scale);
+        this.axisEl.attr("transform", transform);
+      }
     }
   }
 }

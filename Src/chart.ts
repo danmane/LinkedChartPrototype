@@ -93,8 +93,8 @@ class Chart {
 
   public rerender(translate: number[], scale: number) {
     PerfDiagnostics.toggle("axis");
-    this.xAxis.rescale();
-    this.yAxis.rescale();
+    this.xAxis.transform(translate, scale);
+    this.yAxis.transform(translate, scale);
     PerfDiagnostics.toggle("axis");
     PerfDiagnostics.toggle("transform");
     this.lineRenderer.transform(translate, scale);
