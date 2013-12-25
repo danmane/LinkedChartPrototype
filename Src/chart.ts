@@ -1,5 +1,6 @@
 ///<reference path="../Lib/d3.d.ts" />
 ///<reference path="../Lib/FPSMeter.d.ts" />
+///<reference path="../Lib/lodash.d.ts" />
 ///<reference path="perfdiagnostics.ts" />
 ///<reference path="axis.ts" />
 ///<reference path="utils.ts" />
@@ -103,29 +104,23 @@ class Chart {
 }
 
 class ChartGen {
-  private static testMode = false;
-  public charts: Chart[];
   private chartsReady: number; //hackhack
   private zoomCoordinator: ZoomCoordinator;
   private chartWidth: number;
   private chartHeight: number;
+  public charts: Chart[];
 
-  constructor(numCharts: number) {
-    this.charts = [];
-    d3.json("Data/cityNames.json", (error, data) => {
-      if (ChartGen.testMode) {
-        this.makeCharts(1, ["test.csv"])
-      } else {
-        this.makeCharts(numCharts, d3.values(data));
-      }
-    });
+  constructor(fileNames: string[], private meterEnabled: boolean) {
+    this.makeCharts(fileNames);
   }
 
   private setupZoomCoordinator(xScale, yScale) {
-    this.zoomCoordinator = new ZoomCoordinator(this.charts, xScale, yScale, this.chartWidth, this.chartHeight);
+    this.zoomCoordinator = new ZoomCoordinator(this.charts, xScale, yScale, this.chartWidth, this.chartHeight, this.meterEnabled);
   }
 
-  public makeCharts(numCharts: number, fileNames: string[]) {
+  public makeCharts(fileNames: string[]) {
+    this.charts = [];
+    var numCharts = fileNames.length;
     var containerSelection = d3.select("body");
     var chartsToSide = Math.ceil(Math.sqrt(numCharts));
     this.chartWidth  = window.innerWidth  / chartsToSide - 30;
@@ -149,13 +144,21 @@ interface IZoomWithId extends D3.Behavior.Zoom {
   id: number;
 }
 
-class ZoomCoordinator {
-  private static meterEnabled = true;
-  private zooms: IZoomWithId[];
+interface IChartGenDataFile {
+  meterEnabled: boolean;
+  cities: ICity[];
+}
 
+interface ICity {
+  cityName: string;
+  fileName: string;
+}
+
+class ZoomCoordinator {
+  private zooms: IZoomWithId[];
   private meter: FPSMeter;
 
-  constructor(private charts: Chart[], private xScale: D3.Scale.TimeScale, private yScale: D3.Scale.LinearScale, width, height) {
+  constructor(private charts: Chart[], private xScale: D3.Scale.TimeScale, private yScale: D3.Scale.LinearScale, width, height, private meterEnabled = true) {
     this.zooms = charts.map((c, id) => {
       var z = <IZoomWithId> d3.behavior.zoom();
       z.id = id;
@@ -166,7 +169,7 @@ class ZoomCoordinator {
       (<any> z).size([width, height]);
       return z;
     });
-    if (ZoomCoordinator.meterEnabled) {this.meter = new FPSMeter();}
+    if (this.meterEnabled) {this.meter = new FPSMeter();}
   }
 
   public synchronize(zoom: IZoomWithId) {
@@ -181,10 +184,16 @@ class ZoomCoordinator {
     this.charts.forEach((c) => {
       c.rerender(translate, scale);
     });
-    if (ZoomCoordinator.meterEnabled) this.meter.tick();
+    if (this.meterEnabled) this.meter.tick();
     PerfDiagnostics.toggle("total");
   }
 }
+d3.json("data/chartSettings.json", (error, data: IChartGenDataFile) => {
+  var meterEnabled = data.meterEnabled;
+  var cities = data.cities;
+  var fileNames = _.pluck(cities, "fileName");
 
-var cg = new ChartGen(9);
-(<any> window).charts = cg.charts;
+  var cg = new ChartGen(fileNames, meterEnabled);
+  window.charts = cg.charts;
+  
+  })

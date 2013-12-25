@@ -1,0 +1,4 @@
+{
+	"cityNames": [{"cityName": "testland", "fileName": "test.csv"}],
+	"meterEnabled": false
+}

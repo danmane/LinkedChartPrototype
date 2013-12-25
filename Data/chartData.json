@@ -1,0 +1,41 @@
+{
+	"cities": [
+	  {
+	  	"cityName": "Chicago", 
+	  	"fileName": "chicago_university.csv"
+	  },
+	  {
+	  	"cityName": "New York", 
+	  	"fileName": "new_york_central_park.csv"
+	  },
+	  {
+	  	"cityName": "Palo Alto", 
+	  	"fileName": "palo_alto.csv"
+	  },
+	  {
+	  	"cityName": "San Francisco", 
+	  	"fileName": "sf.csv"
+	  },
+	  {
+	  	"cityName": "Berkely", 
+	  	"fileName": "berkeley.csv"
+	  },
+	  {
+	  	"cityName": "Mountain View", 
+	  	"fileName": "mountain_view.csv"
+	  },
+	  {
+	  	"cityName": "San Jose", 
+	  	"fileName": "san_jose.csv"
+	  },
+	  {
+	  	"cityName": "Redwood City", 
+	  	"fileName": "redwood_city.csv"
+	  },
+	  {
+	  	"cityName": "SFO", 
+	  	"fileName": "sfo.csv"
+	  }
+	],
+	"meterEnabled": true
+}
