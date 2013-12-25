@@ -93,8 +93,8 @@ class Chart {
 
   public rerender(translate: number[], scale: number) {
     PerfDiagnostics.toggle("axis");
-    this.xAxis.transform(translate, scale);
-    this.yAxis.transform(translate, scale);
+    this.xAxis.rescale();
+    this.yAxis.rescale();
     PerfDiagnostics.toggle("axis");
     PerfDiagnostics.toggle("transform");
     this.lineRenderer.transform(translate, scale);
@@ -103,10 +103,12 @@ class Chart {
 }
 
 class ChartGen {
-  private static testMode = true;
+  private static testMode = false;
   public charts: Chart[];
   private chartsReady: number; //hackhack
   private zoomCoordinator: ZoomCoordinator;
+  private chartWidth: number;
+  private chartHeight: number;
 
   constructor(numCharts: number) {
     this.charts = [];
@@ -120,23 +122,23 @@ class ChartGen {
   }
 
   private setupZoomCoordinator(xScale, yScale) {
-    this.zoomCoordinator = new ZoomCoordinator(this.charts, xScale, yScale);
+    this.zoomCoordinator = new ZoomCoordinator(this.charts, xScale, yScale, this.chartWidth, this.chartHeight);
   }
 
   public makeCharts(numCharts: number, fileNames: string[]) {
     var containerSelection = d3.select("body");
     var chartsToSide = Math.ceil(Math.sqrt(numCharts));
-    var width  = window.innerWidth  / chartsToSide - 30;
-    var height = window.innerHeight / chartsToSide - 10;
-    var xScale = d3.time.scale().range([0, width]);
-    var yScale = d3.scale.linear().range([0, height]);
+    this.chartWidth  = window.innerWidth  / chartsToSide - 30;
+    this.chartHeight = window.innerHeight / chartsToSide - 10;
+    var xScale = d3.time.scale().range([0, this.chartWidth]);
+    var yScale = d3.scale.linear().range([0, this.chartHeight]);
     var readyFunction = Utils.readyCallback(numCharts, () => this.setupZoomCoordinator(xScale, yScale));
     fileNames = fileNames.slice(0, numCharts);
     fileNames.forEach((fileName: string) => {
       fileName = "Data/" + fileName;
       d3.csv(fileName, (error, data) => {
         var parsedData = Utils.processCSVData(data);
-        this.charts.push(new Chart(containerSelection, height, width, xScale, yScale, parsedData));
+        this.charts.push(new Chart(containerSelection, this.chartHeight, this.chartWidth, xScale, yScale, parsedData));
         readyFunction();
       })
     });
@@ -148,11 +150,12 @@ interface IZoomWithId extends D3.Behavior.Zoom {
 }
 
 class ZoomCoordinator {
+  private static meterEnabled = true;
   private zooms: IZoomWithId[];
 
   private meter: FPSMeter;
 
-  constructor(private charts: Chart[], private xScale: D3.Scale.TimeScale, private yScale: D3.Scale.LinearScale) {
+  constructor(private charts: Chart[], private xScale: D3.Scale.TimeScale, private yScale: D3.Scale.LinearScale, width, height) {
     this.zooms = charts.map((c, id) => {
       var z = <IZoomWithId> d3.behavior.zoom();
       z.id = id;
@@ -160,9 +163,10 @@ class ZoomCoordinator {
       z.on("zoom", () => this.synchronize(z));
       z.x(this.xScale);
       z.y(this.yScale);
+      (<any> z).size([width, height]);
       return z;
     });
-    this.meter = new FPSMeter();
+    if (ZoomCoordinator.meterEnabled) {this.meter = new FPSMeter();}
   }
 
   public synchronize(zoom: IZoomWithId) {
@@ -174,12 +178,10 @@ class ZoomCoordinator {
       z.translate(translate);
       z.scale(scale);
     });
-    var xTicks = this.xScale.ticks(10);
-    var yTicks = this.yScale.ticks(10);
     this.charts.forEach((c) => {
       c.rerender(translate, scale);
     });
-    this.meter.tick();
+    if (ZoomCoordinator.meterEnabled) this.meter.tick();
     PerfDiagnostics.toggle("total");
   }
 }

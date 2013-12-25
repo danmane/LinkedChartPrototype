@@ -51,18 +51,5 @@ module Axis {
       var tickSelection = this.axisEl.selectAll(".tick");
       (<any> tickSelection).call(tickTransform, this.scale);
     }
-
-    public transform(translatePair: number[], scale: number) {
-      var translate = this.isXAligned ? translatePair[0] : translatePair[1];
-      if (scale != null && scale != this.cachedScale) {
-        this.cachedTranslate = translate;
-        this.rescale();
-      } else {
-        // translate -= this.cachedTranslate;
-      }
-      var transform = this.transformString(translate, scale);
-      this.axisEl.attr("transform", transform);
-      this.cachedScale = scale;
-    }
   }
 }
