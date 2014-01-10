@@ -1,0 +1,19 @@
+{
+    "settings": {
+        "typescript": {
+            "roots": [
+                "Src/chart.ts"
+            ]
+        }
+    }, 
+    "folders": [
+        {
+            "follow_symlinks": true, 
+            "path": "/Users/danmane/Dropbox/Code/Github/LinkedChartPrototype"
+        }, 
+        {
+            "follow_symlinks": true, 
+            "path": "."
+        }
+    ]
+}
