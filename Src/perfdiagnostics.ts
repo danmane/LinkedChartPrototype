@@ -16,7 +16,7 @@ module PerfDiagnostics {
     }
 
     private static getTime() {
-      if (performance.now) {
+      if (false && performance.now) { // testing for existance of performance breaks on ipad
         return performance.now();
       } else {
         return Date.now();
@@ -34,7 +34,7 @@ module PerfDiagnostics {
         (grandTotal && measurementName !== "total") ? console.log("%   :", Math.round(result/grandTotal * 10000) / 100) : null;
         console.groupEnd();
       });
-      
+
     }
 
     constructor() {
