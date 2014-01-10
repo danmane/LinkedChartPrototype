@@ -7,6 +7,7 @@
 ///<reference path="renderer.ts" />
 
 var isiPad = navigator.userAgent.match(/iPad/i) != null;
+var renderer;
 
 interface IWeatherDatum {
   avg   : number; // Average temperature on date
@@ -64,10 +65,12 @@ class Chart {
       return dataset;
     });
 
-    if (Chart.drawLines) {
+    if ((<any> window).renderer == "line") {
       this.renderers = datasets.map((d, i) => new LineRenderer(this.plot, d, this.xScale, this.yScale, Chart.dataAttributesToDraw[i]));
-    } else {
+    } else if ((<any> window).renderer == "resizing-circle") {
       this.renderers = datasets.map((d, i) => new ResizingCircleRenderer(this.plot, d, this.xScale, this.yScale, Chart.dataAttributesToDraw[i]));
+    } else {
+      this.renderers = datasets.map((d, i) => new CircleRenderer(this.plot, d, this.xScale, this.yScale, Chart.dataAttributesToDraw[i]));
     }
   }
 
