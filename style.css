@@ -25,9 +25,27 @@ div {
 .avg {
   stroke: black;
 }
+.avgh {
+  stroke:pink;
+}
+.avgl {
+  stroke: powderblue;
+}
 .hi {
   stroke: orange;
 }
+.hih {
+  stroke: orangered;
+}
+.hil {
+  stroke: coral;
+}
 .lo {
   stroke: steelblue;
+}
+.loh {
+  stroke: plum;
+}
+.lol {
+  stroke: royalblue;
 }

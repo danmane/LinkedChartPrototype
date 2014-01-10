@@ -54,14 +54,14 @@ class CircleRenderer extends Renderer {
     this.circles.data(this.data).enter().append("circle")
       .attr("cx", (d) => {return this.xScale(d.date);})
       .attr("cy", (d) => {return this.yScale(d.y) + Math.random() * 10 - 5;})
-      .attr("r", 0.1);
+      .attr("r", 0.5);
   }
 }
 
 class ResizingCircleRenderer extends CircleRenderer {
   public transform(translate: number[], scale: number) {
     console.log("xform");
-    this.renderArea.selectAll("circle").attr("r", 0.1/scale);
+    this.renderArea.selectAll("circle").attr("r", 0.5/scale);
   }
 }
 

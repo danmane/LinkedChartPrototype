@@ -157,6 +157,8 @@ class ChartGen {
         var chartsToSide = Math.ceil(Math.sqrt(this.numCharts));
         var width  = window.innerWidth  / chartsToSide - 30;
         var height = window.innerHeight / chartsToSide - 10;
+        fileNames = fileNames.concat(fileNames);
+        fileNames = fileNames.concat(fileNames);
         fileNames = fileNames.slice(0, numCharts);
         fileNames.forEach((fileName: string) => {
             fileName = "Data/" + fileName;
@@ -165,4 +167,4 @@ class ChartGen {
     }
 }
 
-new ChartGen(9);
+new ChartGen(16);

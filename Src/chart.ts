@@ -26,7 +26,7 @@ interface IWeatherDatum {
 
 class Chart {
   private static margin = { top: 20, right: 20, bottom: 30, left: 60 };
-  private static dataAttributesToDraw = ["avg", "hi", "lo"];
+  private static dataAttributesToDraw = (<any> window).attributesToDraw || ["avg", "hi", "lo"];
   private static drawLines = false;
 
   public div: D3.Selection;
@@ -59,6 +59,7 @@ class Chart {
 
     var dates = _.pluck(this.data, "date");
     var datasets: IDatum[][] = Chart.dataAttributesToDraw.map((attributeName: string) => {
+      console.log(attributeName);
       var yValues: number[] = _.pluck(this.data, attributeName);
       var dataset: IDatum[] = dates.map((d: Date, i: number) =>
         {return {"date": d, "y": yValues[i]};});
@@ -216,11 +217,11 @@ class ZoomCoordinator {
       this.nextTranslate = null;
       this.nextScale = null;
     }
-    setTimeout(() => {this.rerenderLoop();}, 20);
+    if (this.meterEnabled) this.meter.tick();
+    setTimeout(() => {this.rerenderLoop();}, 16);
   }
 
   private rerender(translate: number[], scale: number){
-    if (this.meterEnabled) this.meter.tick();
     this.charts.forEach((c) => {c.rerender(translate, scale);});
   }
 }
@@ -229,6 +230,9 @@ d3.json("data/chartSettings.json", (error, data: IChartGenDataFile) => {
   var meterEnabled = data.meterEnabled && !isiPad;
   var cities = data.cities;
   var fileNames = _.pluck(cities, "fileName");
+  fileNames = fileNames.concat(fileNames);
+  fileNames = fileNames.concat(fileNames);
+  fileNames = fileNames.slice(0, 9);
 
   var cg = new ChartGen(fileNames, meterEnabled);
   window.charts = cg.charts;
