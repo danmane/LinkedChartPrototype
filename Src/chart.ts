@@ -6,6 +6,8 @@
 ///<reference path="utils.ts" />
 ///<reference path="renderer.ts" />
 
+var isiPad = navigator.userAgent.match(/iPad/i) != null;
+
 interface IWeatherDatum {
   avg   : number; // Average temperature on date
   avgh  : number;
@@ -24,7 +26,7 @@ interface IWeatherDatum {
 class Chart {
   private static margin = { top: 20, right: 20, bottom: 30, left: 60 };
   private static dataAttributesToDraw = ["avg", "hi", "lo"];
-  private static drawLines = true;
+  private static drawLines = false;
 
   public div: D3.Selection;
 
@@ -65,7 +67,7 @@ class Chart {
     if (Chart.drawLines) {
       this.renderers = datasets.map((d, i) => new LineRenderer(this.plot, d, this.xScale, this.yScale, Chart.dataAttributesToDraw[i]));
     } else {
-      this.renderers = datasets.map((d, i) => new CircleRenderer(this.plot, d, this.xScale, this.yScale, Chart.dataAttributesToDraw[i]));
+      this.renderers = datasets.map((d, i) => new ResizingCircleRenderer(this.plot, d, this.xScale, this.yScale, Chart.dataAttributesToDraw[i]));
     }
   }
 
@@ -208,6 +210,8 @@ class ZoomCoordinator {
   private rerenderLoop(){
     if (this.nextTranslate != null && this.nextScale != null) {
       this.rerender(this.nextTranslate, this.nextScale);
+      this.nextTranslate = null;
+      this.nextScale = null;
     }
     setTimeout(() => {this.rerenderLoop();}, 20);
   }
@@ -219,7 +223,7 @@ class ZoomCoordinator {
 }
 
 d3.json("data/chartSettings.json", (error, data: IChartGenDataFile) => {
-  var meterEnabled = false;//data.meterEnabled;
+  var meterEnabled = data.meterEnabled && !isiPad;
   var cities = data.cities;
   var fileNames = _.pluck(cities, "fileName");
 
