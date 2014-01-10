@@ -157,6 +157,8 @@ interface ICity {
 class ZoomCoordinator {
   private zooms: IZoomWithId[];
   private meter: FPSMeter;
+  private nextTranslate: number[];
+  private nextScale: number;
 
   constructor(private charts: Chart[], private xScale: D3.Scale.TimeScale, private yScale: D3.Scale.LinearScale, width, height, private meterEnabled = true) {
     this.zooms = charts.map((c, id) => {
@@ -170,6 +172,7 @@ class ZoomCoordinator {
       return z;
     });
     if (this.meterEnabled) {this.meter = new FPSMeter();}
+    this.rerenderLoop();
   }
 
   public synchronize(zoom: IZoomWithId) {
@@ -181,19 +184,30 @@ class ZoomCoordinator {
       z.translate(translate);
       z.scale(scale);
     });
-    this.charts.forEach((c) => {
-      c.rerender(translate, scale);
-    });
-    if (this.meterEnabled) this.meter.tick();
+    this.nextTranslate = translate;
+    this.nextScale = scale;
     PerfDiagnostics.toggle("total");
   }
+
+  private rerenderLoop(){
+    if (this.nextTranslate != null && this.nextScale != null) {
+      this.rerender(this.nextTranslate, this.nextScale);
+    }
+    setTimeout(() => {this.rerenderLoop();}, 20);
+  }
+
+  private rerender(translate: number[], scale: number){
+    if (this.meterEnabled) this.meter.tick();
+    this.charts.forEach((c) => {c.rerender(translate, scale);});
+  }
 }
+
 d3.json("data/chartSettings.json", (error, data: IChartGenDataFile) => {
-  var meterEnabled = data.meterEnabled;
+  var meterEnabled = false;//data.meterEnabled;
   var cities = data.cities;
   var fileNames = _.pluck(cities, "fileName");
 
   var cg = new ChartGen(fileNames, meterEnabled);
   window.charts = cg.charts;
-  
+
   })
