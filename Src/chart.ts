@@ -4,6 +4,7 @@
 ///<reference path="perfdiagnostics.ts" />
 ///<reference path="axis.ts" />
 ///<reference path="utils.ts" />
+///<reference path="renderer.ts" />
 
 interface IWeatherDatum {
   avg   : number; // Average temperature on date
@@ -23,6 +24,7 @@ interface IWeatherDatum {
 class Chart {
   private static margin = { top: 20, right: 20, bottom: 30, left: 60 };
   private static dataAttributesToDraw = ["avg", "hi", "lo"];
+  private static drawLines = true;
 
   public div: D3.Selection;
 
@@ -32,7 +34,7 @@ class Chart {
   private xAxisContiner: D3.Selection;
   private yAxisContiner: D3.Selection;
   private plot: D3.Selection;
-  private lineRenderer: MultiLineRenderer.MultiLineRenderer;
+  private renderers: Renderer[];
 
   constructor(
     container: D3.Selection,
@@ -51,7 +53,20 @@ class Chart {
     var formatter = d3.time.format("%b");
     this.xAxis = new Axis.Axis(this.xAxisContiner, this.xScale, "bottom", formatter);
     this.yAxis = new Axis.Axis(this.yAxisContiner, this.yScale, "left", null);
-    this.lineRenderer = new MultiLineRenderer.MultiLineRenderer(this.plot, this.data, Chart.dataAttributesToDraw, this.xScale, this.yScale);
+
+    var dates = _.pluck(this.data, "date");
+    var datasets: IDatum[][] = Chart.dataAttributesToDraw.map((attributeName: string) => {
+      var yValues: number[] = _.pluck(this.data, attributeName);
+      var dataset: IDatum[] = dates.map((d: Date, i: number) =>
+        {return {"date": d, "y": yValues[i]};});
+      return dataset;
+    });
+
+    if (Chart.drawLines) {
+      this.renderers = datasets.map((d, i) => new LineRenderer(this.plot, d, this.xScale, this.yScale, Chart.dataAttributesToDraw[i]));
+    } else {
+      this.renderers = datasets.map((d, i) => new CircleRenderer(this.plot, d, this.xScale, this.yScale, Chart.dataAttributesToDraw[i]));
+    }
   }
 
   private setupDOM(container: D3.Selection) {
@@ -89,7 +104,7 @@ class Chart {
 
     this.xAxis.render();
     this.yAxis.render();
-    this.lineRenderer.render();
+    this.renderers.forEach((r) => r.render());
   }
 
   public rerender(translate: number[], scale: number) {
@@ -98,7 +113,8 @@ class Chart {
     this.yAxis.transform(translate, scale);
     PerfDiagnostics.toggle("axis");
     PerfDiagnostics.toggle("transform");
-    this.lineRenderer.transform(translate, scale);
+    this.plot.attr("transform", "translate("+translate+") scale("+scale+")");
+    this.renderers.forEach((r) => r.transform(translate, scale));
     PerfDiagnostics.toggle("transform");
   }
 }
